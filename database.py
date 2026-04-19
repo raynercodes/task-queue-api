@@ -34,7 +34,9 @@ cursor.execute(
     status TEXT NOT NULL,
     error_message TEXT,
     created_at TEXT NOT NULL,
-    updated_at TEXT NOT NULL
+    updated_at TEXT NOT NULL,
+    retry_count INTEGER NOT NULL DEFAULT 0,
+    max_retries INTEGER NOT NULL DEFAULT 3
     )
 """)
 
