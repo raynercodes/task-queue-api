@@ -67,7 +67,7 @@ def get_next_pending_task():
 
     cursor.execute(
         """
-        SELECT id, user_id, task_type, payload, status, error_message, created_at, updated_at
+        SELECT id, user_id, task_type, payload, status, error_message, created_at, updated_at, retry_count, max_retries
         FROM tasks
         WHERE status = 'pending'
         ORDER BY created_at ASC
@@ -94,3 +94,38 @@ def update_task_status(task_id, status, updated_at, error_message=None):
 
     conn.commit()
     conn.close()
+
+def get_task_stats_for_user_repo(user_id):
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        SELECT status, COUNT(*)
+        FROM tasks
+        WHERE user_id = ? 
+        GROUP BY status
+        """,
+        (user_id,)
+    )
+
+    rows = cursor.fetchall()
+    conn.close()
+
+    return rows
+
+def increment_retry_count(task_id):
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        UPDATE tasks
+        SET retry_count = retry_count + 1
+        WHERE id = ?
+        """,
+        (task_id,)
+    )
+
+    conn.commit()
+    conn.close

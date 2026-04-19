@@ -1,5 +1,5 @@
 from datetime import datetime, UTC
-from repos.task_repos import create_task, list_tasks_by_user, get_task_by_id_for_user_repo
+from repos.task_repos import create_task, list_tasks_by_user, get_task_by_id_for_user_repo, get_task_stats_for_user_repo
 import json
 
 ALLOWED_TASK_TYPES = {"send_email", "generate_report", "cleanup"}
@@ -84,3 +84,20 @@ def get_task_by_id_for_user(user_id, task_id):
         }
 
     return task
+
+def get_task_stats_for_user(user_id):
+    rows = get_task_stats_for_user_repo(user_id)
+
+    stats = {
+        "pending": 0,
+        "processing": 0,
+        "completed": 0,
+        "failed": 0,
+    }
+
+    for row in rows:
+        status = row[0]
+        count = row[1]
+        stats[status] = count
+
+    return stats

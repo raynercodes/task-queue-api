@@ -1,4 +1,4 @@
-from repos.task_repos import get_next_pending_task, update_task_status
+from repos.task_repos import get_next_pending_task, update_task_status, increment_retry_count
 from datetime import datetime, UTC
 import time
 import json
@@ -60,13 +60,27 @@ def worker_loop():
             )
         except Exception as e:
             updated_at = datetime.now(UTC).isoformat()
-            
-            update_task_status(
-                task_id,
-                "failed",
-                updated_at=updated_at,
-                error_message=str(e)
-            )
+            retry_count = task[8]
+            max_retries = task[9]
+
+            if retry_count < max_retries:
+                increment_retry_count(task_id)
+
+                update_task_status(
+                    task_id,
+                    "pending",
+                    updated_at,
+                    error_message=str(e)
+                )
+
+                print(f"Current retry count {retry_count}")
+            else:
+                update_task_status(
+                    task_id,
+                    "failed",
+                    updated_at,
+                    error_message=str(e)
+                )
 
         time.sleep(2)
     
