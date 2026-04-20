@@ -136,6 +136,14 @@ Uses grouped SQL queries (GROUP BY) to return task counts by status.
 
 ---
 
+## Run with Docker
+
+## Run with Docker
+
+1. Build and start containers
+```bash
+docker compose up --build
+
 ## Author
 
 Leonardo Rayner
