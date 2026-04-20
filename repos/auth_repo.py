@@ -7,7 +7,7 @@ def create_user(username, password_hash, created_at):
     cursor.execute(
         """
         INSERT INTO users (username, password_hash, created_at)
-        VALUES (?, ?, ?)
+        VALUES (%s, %s, %s)
         """,
         (username, password_hash, created_at)
     )
@@ -21,9 +21,9 @@ def get_user_by_username(username):
 
     cursor.execute(
         """
-        SELECT username, password_hash
+        SELECT id, password_hash
         FROM users
-        WHERE username = ?
+        WHERE username = %s
         """,
         (username,)
     )
@@ -39,10 +39,10 @@ def store_refresh_token(user_id, token, created_at):
 
     cursor.execute(
         """
-        INSERT INTO refresh_tokens (user_id, token, created_at, revoked_at)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO refresh_tokens (user_id, token, created_at)
+        VALUES (%s, %s, %s)
         """,
-        (user_id, token, created_at, None)
+        (user_id, token, created_at)
     )
 
     conn.commit()
@@ -56,13 +56,13 @@ def get_refresh_token_repo(token):
         """
         SELECT id, user_id, token, created_at, revoked_at
         FROM refresh_tokens
-        WHERE token = ? 
+        WHERE token = %s
         """,
         (token,)
     )
 
     row = cursor.fetchone()
-    conn.close
+    conn.close()
 
     return row
 
@@ -73,8 +73,8 @@ def revoke_refresh_token(revoked_at, token):
     cursor.execute(
         """
         UPDATE refresh_tokens
-        SET revoked_at = ?
-        WHERE token = ?
+        SET revoked_at = %s
+        WHERE token = %s
         """,
         (revoked_at, token)
     )

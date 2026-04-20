@@ -1,6 +1,6 @@
-import sqlite3
-from config import DB_PATH
+import psycopg
+from config import DATABASE_URL
 
 
 def get_db():
-    return sqlite3.connect(DB_PATH)
+    return psycopg.connect(DATABASE_URL)

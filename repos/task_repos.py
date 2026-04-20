@@ -7,7 +7,7 @@ def create_task(user_id, task_type, payload, status, error_message, created_at, 
     cursor.execute(
         """
         INSERT INTO tasks (user_id, task_type, payload, status, error_message, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
         """,
         (user_id, task_type, payload, status, error_message, created_at, updated_at)
     )
@@ -31,7 +31,7 @@ def list_tasks_by_user(user_id):
         created_at,
         updated_at
         FROM tasks
-        WHERE user_id = ?
+        WHERE user_id = %s
         ORDER BY created_at DESC
         """,
         (user_id,)
@@ -51,7 +51,7 @@ def get_task_by_id_for_user_repo(user_id, task_id):
         """
         SELECT id, user_id, task_type, payload, status, error_message, created_at, updated_at
         FROM tasks
-        WHERE user_id = ? AND id = ?
+        WHERE user_id = %s AND id = %s
         """,
         (user_id, task_id)
     )
@@ -86,8 +86,8 @@ def update_task_status(task_id, status, updated_at, error_message=None):
     cursor.execute(
         """
         UPDATE tasks
-        SET status = ?, updated_at = ?, error_message = ?
-        WHERE id = ?
+        SET status = %s, updated_at = %s, error_message = %s
+        WHERE id = %s
         """,
         (status, updated_at, error_message, task_id)
     )
@@ -103,7 +103,7 @@ def get_task_stats_for_user_repo(user_id):
         """
         SELECT status, COUNT(*)
         FROM tasks
-        WHERE user_id = ? 
+        WHERE user_id = %s
         GROUP BY status
         """,
         (user_id,)
@@ -122,7 +122,7 @@ def increment_retry_count(task_id):
         """
         UPDATE tasks
         SET retry_count = retry_count + 1
-        WHERE id = ?
+        WHERE id = %s
         """,
         (task_id,)
     )
