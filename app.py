@@ -20,7 +20,7 @@ def home():
             "PostgreSQL",
             "Docker"
         ],
-        "message": "Task Queue API is running check Github for endpoints.",
+        "message": "Task Queue API is running check Github README for endpoints.",
         "status": "running"
     }
 
