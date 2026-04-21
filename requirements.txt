@@ -2,3 +2,4 @@ Flask
 Werkzeug
 PyJWT
 psycopg[binary]
+gunicorn
