@@ -83,6 +83,24 @@ config.py
 
 ---
 
+## How to test:
+
+- 1. Register a user:
+    POST /register
+
+- 2. Login:
+    POST /login
+
+- 3. Copy access token
+
+- 4. Use token in headers:
+    Authorization: Bearer <token>
+
+- 5. Access protected routes like:
+    GET /tasks
+
+---
+
 ## Task Processing
 
 - Tasks are created with status:
