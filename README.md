@@ -138,11 +138,15 @@ Uses grouped SQL queries (GROUP BY) to return task counts by status.
 
 ## Run with Docker
 
-## Run with Docker
-
 1. Build and start containers
 ```bash
 docker compose up --build
+
+---
+
+## Note:
+The background worker is implemented and runs locally/Docker.
+Cloud deployment of the worker requires a paid instance on most platforms.
 
 ## Author
 
