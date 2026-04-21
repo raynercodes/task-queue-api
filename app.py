@@ -9,6 +9,13 @@ app = Flask(__name__)
 app.register_blueprint(tasks_bp)
 app.register_blueprint(auth_bp)
 
+@app.route("/", methods=["GET"])
+def home():
+    return {
+        "message": "Task Queue API is running check Github for endpoints.",
+        "status": "ok"
+    }
+
 @app.errorhandler(ValueError)
 def handle_value_error(e):
     return error_response(str(e), status=400)

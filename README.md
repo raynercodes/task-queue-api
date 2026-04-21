@@ -145,8 +145,11 @@ docker compose up --build
 ---
 
 ## Note:
-The background worker is implemented and runs locally/Docker.
-Cloud deployment of the worker requires a paid instance on most platforms.
+The background worker is implemented and runs locally/Docker. Deploying it on Render requires a paid worker instance.
+
+---
+
+Live API: https://task-queue-api-8slh.onrender.com
 
 ## Author
 
