@@ -12,8 +12,16 @@ app.register_blueprint(auth_bp)
 @app.route("/", methods=["GET"])
 def home():
     return {
+        "name": "Task Queue API",
+        "features": [
+            "JWT auth",
+            "task processing",
+            "retry logic",
+            "PostgreSQL",
+            "Docker"
+        ],
         "message": "Task Queue API is running check Github for endpoints.",
-        "status": "ok"
+        "status": "running"
     }
 
 @app.errorhandler(ValueError)
