@@ -146,9 +146,6 @@ Uses grouped SQL queries (GROUP BY) to return task counts by status.
 ---
 
 ## Future Improvements
-- PostgreSQL migration
-- Docker containerization
-- Deployment (public API)
 - Task cancellation endpoint
 - Pagination for task listing
 
