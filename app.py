@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask
 from routes.task_routes import tasks_bp
 from routes.auth_routes import auth_bp
 from utils.responses import error_response

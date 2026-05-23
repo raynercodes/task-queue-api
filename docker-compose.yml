@@ -20,7 +20,7 @@ services:
       DATABASE_URL: "dbname=task_queue_api user=postgres password=postgres host=db port=5432"
       SECRET_KEY: "docker-dev-secret-key"
     ports:
-      - "5000:5000"
+      - "5001:5000"
     command: python app.py
 
   worker:
