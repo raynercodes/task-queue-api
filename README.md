@@ -22,7 +22,8 @@ A backend API for managing asynchronous tasks with background processing, retry 
 
 - Python
 - Flask
-- SQLite
+- PostgreSQL
+- Docker / Docker Compose
 - PyJWT
 - Werkzeug
 
@@ -43,7 +44,13 @@ config.py
 
 ## How to Run
 
-### Install dependencies
+### With Docker (recommended)
+```bash
+docker compose up --build
+```
+
+
+### Manual setup
 ```bash
 - pip install -r requirements.txt
 - python database.py
@@ -165,6 +172,10 @@ The background worker is implemented and runs locally/Docker. Deploying it on Re
 ---
 
 Live API: https://task-queue-api-8slh.onrender.com
+
+## Certifications
+
+- AWS Certified Cloud Practitioner — Amazon Web Services (2026)
 
 ## Author
 
