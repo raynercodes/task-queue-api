@@ -1,6 +1,6 @@
 import psycopg
-from config import DATABASE_URL
+from config import Config
 
 
 def get_db():
-    return psycopg.connect(DATABASE_URL)
+    return psycopg.connect(Config.DATABASE_URL)
