@@ -1,4 +1,5 @@
 from db import get_db
+from utils.redis_client import redis_client
 
 def create_user(username, password_hash, created_at):
     conn = get_db()
@@ -65,6 +66,13 @@ def get_refresh_token_repo(token):
     conn.close()
 
     return row
+
+def blacklist_refresh_token(token):
+    # Store in Redis for 7 days (604800 seconds) to match refresh token lifetime
+    redis_client.setex(f"blacklist:{token}", 604800, "revoked")
+
+def is_token_blacklisted(token):
+    return redis_client.exists(f"blacklist:{token}") == 1
 
 def revoke_refresh_token(revoked_at, token):
     conn = get_db()

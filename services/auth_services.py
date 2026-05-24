@@ -1,4 +1,4 @@
-from repos.auth_repo import create_user, get_user_by_username, store_refresh_token, get_refresh_token_repo, revoke_refresh_token
+from repos.auth_repo import create_user, get_user_by_username, store_refresh_token, get_refresh_token_repo, revoke_refresh_token, blacklist_refresh_token, is_token_blacklisted
 from utils.auth import create_access_token, create_refresh_token
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, UTC
@@ -71,6 +71,9 @@ def refresh_access_token(refresh_token):
     if not refresh_token:
         raise ValueError("Refresh token is required")
     
+    if is_token_blacklisted(refresh_token):
+        raise ValueError("Invalid refresh token")
+    
     row = get_refresh_token_repo(refresh_token)
 
     if row is None:
@@ -83,7 +86,8 @@ def refresh_access_token(refresh_token):
     
     revoked_time = datetime.now(UTC).isoformat()
 
-    revoke_refresh_token(revoked_at, revoked_time)
+    revoke_refresh_token(revoked_time, refresh_token)
+    blacklist_refresh_token(refresh_token)
 
     access_token = create_access_token(user_id)
     new_refresh_token = create_refresh_token()
