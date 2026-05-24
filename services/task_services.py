@@ -1,6 +1,7 @@
 from datetime import datetime, UTC
 from repos.task_repos import create_task, list_tasks_by_user, get_task_by_id_for_user_repo, get_task_stats_for_user_repo
 import json
+from utils.redis_client import redis_client
 
 ALLOWED_TASK_TYPES = {"send_email", "generate_report", "cleanup"}
 ALLOWED_TASK_STATUSES = {"pending", "processing", "completed", "failed"}
@@ -86,6 +87,12 @@ def get_task_by_id_for_user(user_id, task_id):
     return task
 
 def get_task_stats_for_user(user_id):
+    cache_key = f"task_stats:{user_id}"
+    cached = redis_client.get(cache_key)
+
+    if cached:
+        return json.loads(cached)
+
     rows = get_task_stats_for_user_repo(user_id)
 
     stats = {
@@ -99,5 +106,7 @@ def get_task_stats_for_user(user_id):
         status = row[0]
         count = row[1]
         stats[status] = count
+
+    redis_client.setex(cache_key, 30, json.dumps(stats))
 
     return stats
