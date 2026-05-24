@@ -3,8 +3,6 @@ from utils.redis_client import redis_client
 from datetime import datetime, UTC
 import time
 import json
-import sys
-sys.stdout.flush()
 
 
 def worker_loop():
@@ -17,7 +15,6 @@ def worker_loop():
             continue
 
         _, task_id = result
-        print(f"Worker received task_id from Redis: {task_id}")
         task = None
 
         for _ in range(3):
@@ -97,7 +94,7 @@ def worker_loop():
                     updated_at,
                     error_message=str(e)
                 )
-                print(f"Task {task_id} failed with error: {e}. No more retries left.")
+                print(f"Task {task_id} permanently failed: {e}", flush=True)
 
 if __name__ == "__main__":
     worker_loop()
