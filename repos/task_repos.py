@@ -1,4 +1,5 @@
 from db import get_db
+from utils.redis_client import redis_client
 
 def create_task(user_id, task_type, payload, status, error_message, created_at, updated_at):
     conn = get_db()
@@ -8,12 +9,19 @@ def create_task(user_id, task_type, payload, status, error_message, created_at, 
         """
         INSERT INTO tasks (user_id, task_type, payload, status, error_message, created_at, updated_at)
         VALUES (%s, %s, %s, %s, %s, %s, %s)
+        RETURNING id 
         """,
         (user_id, task_type, payload, status, error_message, created_at, updated_at)
     )
 
+    task_id = cursor.fetchone()[0]
+
     conn.commit()
     conn.close()
+
+    redis_client.rpush("task_queue", task_id)
+
+    return task_id
 
 def list_tasks_by_user(user_id):
     conn = get_db()
@@ -54,6 +62,24 @@ def get_task_by_id_for_user_repo(user_id, task_id):
         WHERE user_id = %s AND id = %s
         """,
         (user_id, task_id)
+    )
+
+    row = cursor.fetchone()
+    conn.close()
+
+    return row
+
+def get_task_by_id(task_id):
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        SELECT id, user_id, task_type, payload, status, error_message, created_at, updated_at, retry_count, max_retries
+        FROM tasks
+        WHERE id = %s
+        """,
+        (task_id,)
     )
 
     row = cursor.fetchone()

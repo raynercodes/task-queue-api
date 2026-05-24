@@ -3,3 +3,5 @@ Werkzeug
 PyJWT
 psycopg[binary]
 gunicorn
+redis
+python-dotenv
