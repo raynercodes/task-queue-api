@@ -18,7 +18,8 @@ def home():
             "task processing",
             "retry logic",
             "PostgreSQL",
-            "Docker"
+            "Docker",
+            "Redis"
         ],
         "github": "https://github.com/raynercodes/task-queue-api.git",
         "message": "Task Queue API is running check Github README for endpoints.",
