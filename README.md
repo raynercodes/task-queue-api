@@ -1,20 +1,26 @@
 # Task Queue API
 
-A backend API for managing asynchronous tasks with background processing, retry logic, and user-based ownership.
+A backend REST API for managing asynchronous tasks with background processing, retry logic, Redis message brokering, and user-based ownership.
+
+---
+
+## Live API
+
+https://tasks.raynercodes.dev
 
 ---
 
 ## Features
 
-- JWT authentication (access + refresh tokens)
-- Protected routes with user ownership (`g.user_id`)
-- Create and manage tasks
-- Background worker for async task processing
-- Task lifecycle:
-  - pending → processing → completed / failed
-- Retry logic with max retry limits
-- Task statistics endpoint (status counts)
-- JSON payload support for flexible task data
+- JWT authentication with access and refresh token rotation
+- Redis message brokering via BLPOP for instant task pickup
+- Redis token blacklisting with automatic TTL expiry
+- Redis caching on aggregation endpoints
+- Async background worker with retry logic
+- Task lifecycle management — pending → processing → completed / failed
+- PostgreSQL with optimized queries and row-level data isolation
+- Structured logging for debugging and request tracing
+- Dockerized with four services — API, worker, PostgreSQL, Redis
 
 ---
 
@@ -23,160 +29,171 @@ A backend API for managing asynchronous tasks with background processing, retry 
 - Python
 - Flask
 - PostgreSQL
+- Redis
 - Docker / Docker Compose
+- Nginx + Let's Encrypt SSL
 - PyJWT
 - Werkzeug
 
 ---
 
 ## Project Structure
-repos/
+
+```
 routes/
 services/
+repos/
 utils/
 app.py
 worker.py
 database.py
-db.py
 config.py
+Dockerfile
+docker-compose.yml
+```
 
 ---
 
 ## How to Run
 
 ### With Docker (recommended)
+
 ```bash
+git clone https://github.com/raynercodes/task-queue-api.git
+cd task-queue-api
+cp .env.example .env  # add your secrets
 docker compose up --build
 ```
 
+### Manual Setup
 
-### Manual setup
 ```bash
-- pip install -r requirements.txt
-- python database.py
-- python app.py
-- python worker.py
+pip install -r requirements.txt
+python database.py
+python app.py
+python worker.py
+```
+
+---
+
+## Environment Variables
+
+```
+DATABASE_URL=dbname=task_queue_api user=postgres password=postgres host=db port=5432
+SECRET_KEY=your-secret-key
+REDIS_URL=redis://redis:6379
+PORT=5000
+```
 
 ---
 
 ## Authentication
 
- - POST /register
- - POST /login
- - POST /refresh
+```
+POST /register
+POST /login
+POST /refresh
+```
 
- - Use the access token for all protected routes.
+Use the access token in all protected route headers:
+```
+Authorization: Bearer <access_token>
+```
 
 ---
 
 ## Task Endpoints
 
- - POST /tasks
- - GET /tasks
- - GET /tasks/<id>
- - GET /tasks/stats
+```
+POST  /tasks          Create a new task
+GET   /tasks          List all tasks for the authenticated user
+GET   /tasks/<id>     Get a specific task
+GET   /tasks/stats    Get task counts by status
+```
 
- ---
+---
 
- ## Example Task
+## Example Task
 
- {
+```json
+{
   "task_type": "generate_report",
   "payload": {
-    "report_name": "weekly",
-    "fail": true
+    "report_name": "weekly"
   }
 }
+```
+
+### Supported Task Types
+
+| Task Type | Processing Time |
+|-----------|----------------|
+| `send_email` | 3 seconds |
+| `generate_report` | 5 seconds |
+| `cleanup` | 2 seconds |
 
 ---
 
-## How to test:
+## Task Processing Flow
 
-- 1. Register a user:
-    POST /register
-
-- 2. Login:
-    POST /login
-
-- 3. Copy access token
-
-- 4. Use token in headers:
-    Authorization: Bearer <token>
-
-- 5. Access protected routes like:
-    GET /tasks
+```
+Client creates task
+        ↓
+API inserts task into PostgreSQL
+        ↓
+Task ID pushed to Redis via RPUSH
+        ↓
+API returns immediately
+        ↓
+Worker wakes up via BLPOP
+        ↓
+Worker fetches full task from PostgreSQL
+        ↓
+Worker processes task and updates status
+        ↓
+On failure — retries up to max_retries
+        ↓
+Final status: completed or failed
+```
 
 ---
 
-## Task Processing
+## Redis Implementation
 
-- Tasks are created with status:
-    pending
+Redis serves three roles in this project:
 
-
-- The worker processes them:
-    pending → processing → completed
-
-
-- If failure occurs:
-    processing → pending (retry)
-
-
-- After max retries:
-    processing → failed
-
+- **Task queue** — task IDs are pushed to a Redis list on creation. The worker uses BLPOP to block and wait for new tasks instead of polling the database every 2 seconds
+- **Token blacklist** — revoked refresh tokens are stored in Redis with automatic TTL expiry so they clean themselves up
+- **Stats cache** — the stats aggregation endpoint caches results for 30 seconds to reduce repeated database hits
 
 ---
 
 ## Design Decisions
-- Layered Architecture
-- Routes handle requests
-- Services handle business logic
-- Repositories handle SQL
 
-### Background Worker
+### Redis Over Database Polling
+The original worker polled PostgreSQL every 2 seconds checking for pending tasks. This caused unnecessary database load even when there was nothing to do. BLPOP blocks and waits until a task arrives, eliminating polling entirely.
 
-A separate worker continuously processes pending tasks, simulating real backend job queues.
+### Token Blacklisting with TTL
+Revoked refresh tokens are stored in Redis with a 7 day TTL matching the token lifetime. Redis automatically deletes expired entries so there's no cleanup job needed.
 
-### Retry Logic
+### Layered Architecture
+Routes handle requests. Services handle business logic. Repositories handle SQL. This separation keeps each layer independently maintainable.
 
-Failed tasks are retried up to a configurable limit before being marked as permanently failed.
-
-### Row-Level Ownership
-
-All queries filter by user_id to enforce secure access to user data.
-
-### Stats Aggregation
-
-Uses grouped SQL queries (GROUP BY) to return task counts by status.
+### Row-Level Data Isolation
+Every query filters by user_id so users can only access their own tasks regardless of the task ID passed in the request.
 
 ---
 
 ## Future Improvements
+
 - Task cancellation endpoint
 - Pagination for task listing
+- WebSocket support for real-time task status updates
 
 ---
-
-## Run with Docker
-
-1. Build and start containers
-```bash
-docker compose up --build
-
----
-
-## Note:
-The background worker is implemented and runs locally/Docker. Deploying it on Render requires a paid worker instance.
-
----
-
-Live API: https://task-queue-api-8slh.onrender.com
-
-## Certifications
-
-- AWS Certified Cloud Practitioner — Amazon Web Services (2026)
 
 ## Author
 
 Leonardo Rayner
+github.com/raynercodes
+tasks.raynercodes.dev
