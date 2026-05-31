@@ -1,6 +1,7 @@
 services:
   db:
     image: postgres:16
+    restart: unless-stopped
     container_name: task_queue_db
     environment:
       POSTGRES_DB: task_queue_api
@@ -13,12 +14,14 @@ services:
 
   redis:
     image: redis:7
+    restart: unless-stopped
     container_name: task_queue_redis
     ports:
       - "6379:6379"
 
   app:
     build: .
+    restart: unless-stopped
     container_name: task_queue_app
     depends_on:
       - db
@@ -33,6 +36,7 @@ services:
 
   worker:
     build: .
+    restart: unless-stopped
     container_name: task_queue_worker
     depends_on:
       - db
